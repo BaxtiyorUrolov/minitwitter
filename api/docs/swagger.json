@@ -28,10 +28,10 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.LoginResponse"
                         }
                     },
                     "400": {
@@ -201,6 +201,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a user",
                 "consumes": [
                     "application/json"
@@ -259,7 +264,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiAuthKey": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Delete a user by ID",
@@ -425,6 +430,17 @@
                 }
             }
         },
+        "models.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Response": {
             "type": "object",
             "properties": {
@@ -531,10 +547,10 @@
         }
     },
     "securityDefinitions": {
-        "ApiAuthKey": {
+        "BearerAuth": {
             "description": "API key needed to access the endpoints",
             "type": "apiKey",
-            "name": "X-API-Key",
+            "name": "Authorization",
             "in": "header"
         }
     }

@@ -79,7 +79,6 @@ func (u userService) Update(ctx context.Context, updateUser models.UpdateUser) e
 }
 
 func (u userService) Delete(ctx context.Context, id models.PrimaryKey) error {
-	u.log.Info("user delete service layer", logger.Any("user_id", id))
 
 	err := u.storage.User().Delete(ctx, id)
 	if err != nil {

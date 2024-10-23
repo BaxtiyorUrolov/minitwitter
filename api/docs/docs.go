@@ -39,10 +39,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.LoginResponse"
                         }
                     },
                     "400": {
@@ -212,6 +212,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a user",
                 "consumes": [
                     "application/json"
@@ -270,7 +275,7 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "ApiAuthKey": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Delete a user by ID",
@@ -436,6 +441,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Response": {
             "type": "object",
             "properties": {
@@ -542,10 +558,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiAuthKey": {
+        "BearerAuth": {
             "description": "API key needed to access the endpoints",
             "type": "apiKey",
-            "name": "X-API-Key",
+            "name": "Authorization",
             "in": "header"
         }
     }

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 	"twitter/api/models"
@@ -19,7 +20,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        login body models.LoginRequest false "login"
-// @Success      201  {object}  models.User
+// @Success      200  {object}  models.LoginResponse
 // @Failure      400  {object}  models.Response
 // @Failure      404  {object}  models.Response
 // @Failure      500  {object}  models.Response
@@ -40,24 +41,36 @@ func (h Handler) Login(c *gin.Context) {
 		return
 	}
 
+	// Return JWT token on successful login
 	handleResponse(c, h.log, "success", http.StatusOK, loginResponse)
 }
 
+// AuthMiddleware is the JWT authentication middleware
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		accessToken := c.GetHeader("Authorization")
-		if accessToken == "" {
+		tokenString := c.GetHeader("Authorization")
+		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
 			return
 		}
 
-		m, err := jwt.ExtractClaims(accessToken)
+		claims, err := jwt.ExtractClaims(tokenString)
 		if err != nil {
+			fmt.Println("Error extracting claims:", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return
 		}
 
-		c.Set("user_id", m["user_id"].(string))
+		userID, ok := claims["user_id"]
+		if !ok {
+			fmt.Println("user_id not found in claims")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
+			return
+		}
+
+		fmt.Println(userID)
+
+		c.Set("user_id", claims["user_id"])
 		c.Next()
 	}
 }

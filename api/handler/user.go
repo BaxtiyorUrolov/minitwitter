@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"strconv"
@@ -105,6 +106,7 @@ func (h *Handler) GetUserList(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
+// @Security BearerAuth
 // @Param        id path string true "User ID"
 // @Param        user body models.UpdateUser false "user"
 // @Success      200  {object}  models.User
@@ -125,7 +127,14 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	err := h.services.User().Update(context.Background(), updateUser)
+	uuid, err := uuid.Parse(userID.(string))
+	if err != nil {
+		handleResponse(c, h.log, "Invalid UUID format", http.StatusBadRequest, "Invalid UUID format")
+	}
+
+	updateUser.ID = uuid.String()
+
+	err = h.services.User().Update(context.Background(), updateUser)
 	if err != nil {
 		handleResponse(c, h.log, "Error while updating user", http.StatusInternalServerError, err)
 		return
@@ -141,7 +150,7 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Security     ApiAuthKey
+// @Security BearerAuth
 // @Param        id path string true "User ID"
 // @Success      204  {object}  nil
 // @Failure      403  {object}  models.Response

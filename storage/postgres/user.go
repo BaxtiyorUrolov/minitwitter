@@ -150,13 +150,15 @@ func (u *userRepo) Update(ctx context.Context, updateUser models.UpdateUser) err
 
 func (u *userRepo) GetList(ctx context.Context, request models.GetListRequest) (models.UsersResponse, error) {
 	var (
-		page       = request.Page
-		offset     = (page - 1) * request.Limit
-		query      string
-		countQuery string
-		count      = 0
-		users      = []models.User{}
-		search     = request.Search
+		page                = request.Page
+		offset              = (page - 1) * request.Limit
+		query               string
+		countQuery          string
+		count               = 0
+		users               = []models.User{}
+		search              = request.Search
+		bio, profilePicture sql.NullString
+		updatedAT           sql.NullTime
 	)
 
 	// So'rovlar uchun bazaviy count so'rovi
@@ -170,7 +172,7 @@ func (u *userRepo) GetList(ctx context.Context, request models.GetListRequest) (
 		return models.UsersResponse{}, err
 	}
 
-	query = `SELECT id, name, user_name, email, bio, profile_picture FROM users WHERE deleted_at = 0 `
+	query = `SELECT id, name, user_name, email, bio, profile_picture, created_at, updated_at FROM users WHERE deleted_at = 0 `
 	if search != "" {
 		query += fmt.Sprintf(` AND (name ILIKE '%%%s%%' OR user_name ILIKE '%%%s%%' OR email ILIKE '%%%s%%')`, search, search, search)
 	}
@@ -190,11 +192,25 @@ func (u *userRepo) GetList(ctx context.Context, request models.GetListRequest) (
 			&user.Name,
 			&user.UserName,
 			&user.Email,
-			&user.Bio,
-			&user.ProfilePicture,
+			&bio,
+			&profilePicture,
+			&user.CreatedAt,
+			&updatedAT,
 		); err != nil {
 			u.log.Error("error while scanning user", logger.Error(err))
 			return models.UsersResponse{}, err
+		}
+
+		if bio.Valid {
+			user.Bio = bio.String
+		}
+
+		if profilePicture.Valid {
+			user.ProfilePicture = profilePicture.String
+		}
+
+		if updatedAT.Valid {
+			user.UpdatedAt = updatedAT.Time
 		}
 
 		users = append(users, user)
@@ -207,11 +223,17 @@ func (u *userRepo) GetList(ctx context.Context, request models.GetListRequest) (
 }
 
 func (u *userRepo) Delete(ctx context.Context, id models.PrimaryKey) error {
-	_, err := u.db.Exec(ctx, `
+
+	uuid, err := uuid.Parse(id.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = u.db.Exec(ctx, `
 		UPDATE users 
 		SET deleted_at = extract(epoch from current_timestamp) 
 		WHERE id = $1
-	`, id)
+	`, uuid)
 
 	if err != nil {
 		u.log.Error("error while soft deleting user", logger.Error(err))

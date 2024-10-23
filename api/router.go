@@ -9,13 +9,13 @@ import (
 	"twitter/api/handler"
 )
 
-// @securityDefinitions.apikey ApiAuthKey
+// @securityDefinitions.apikey BearerAuth
 // @in header
-// @name X-API-Key
+// @name Authorization
 // @description API key needed to access the endpoints
 
 func (s *Server) endpoints() {
-	v1 := s.router.Group("/api/v1") // Group yaratish
+	v1 := s.router.Group("/api/v1") // Group creation
 	v1.POST("/register", s.handler.Register)
 	v1.POST("/verify-register", s.handler.VerifyRegister)
 
@@ -24,15 +24,16 @@ func (s *Server) endpoints() {
 	v1.POST("/user", s.handler.CreateUser)
 	v1.GET("/user/:id", s.handler.GetUser)
 	v1.GET("/users", s.handler.GetUserList)
-	v1.DELETE("/user/:id", s.handler.DeleteUser)
+	//v1.DELETE("/user/:id", s.handler.DeleteUser)
 
-	// JWT Middleware bilan himoyalangan marshrutlar
-	protectedRoutes := v1.Group("/") // "/api/v1/" ostida yangi guruh
+	// JWT Middleware protected routes
+	protectedRoutes := v1.Group("/") // "/api/v1/" under new group
 	protectedRoutes.Use(handler.AuthMiddleware())
 	{
-		protectedRoutes.PUT("/user", s.handler.UpdateUser)
-		protectedRoutes.DELETE("/user", s.handler.DeleteUser)
+		protectedRoutes.PUT("/user/:id", s.handler.UpdateUser)
+		protectedRoutes.DELETE("/user/:id", s.handler.DeleteUser)
 	}
 
+	// Swagger documentation
 	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

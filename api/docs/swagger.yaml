@@ -17,6 +17,13 @@ definitions:
       password:
         type: string
     type: object
+  models.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   models.Response:
     properties:
       data: {}
@@ -102,10 +109,10 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -212,7 +219,7 @@ paths:
           schema:
             $ref: '#/definitions/models.Response'
       security:
-      - ApiAuthKey: []
+      - BearerAuth: []
       summary: Delete a user
       tags:
       - user
@@ -278,6 +285,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
       summary: Update a user
       tags:
       - user
@@ -343,9 +352,9 @@ paths:
       tags:
       - register
 securityDefinitions:
-  ApiAuthKey:
+  BearerAuth:
     description: API key needed to access the endpoints
     in: header
-    name: X-API-Key
+    name: Authorization
     type: apiKey
 swagger: "2.0"
