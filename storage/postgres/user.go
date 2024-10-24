@@ -137,7 +137,7 @@ func (u *userRepo) Update(ctx context.Context, updateUser models.UpdateUser) err
 
 	args = append(args, updateUser.ID)
 
-	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d", strings.Join(setClauses, ", "), argID)
+	query := fmt.Sprintf("UPDATE users SET %s, updated_at = now() WHERE id = $%d", strings.Join(setClauses, ", "), argID)
 
 	_, err := u.db.Exec(ctx, query, args...)
 	if err != nil {

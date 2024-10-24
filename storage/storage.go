@@ -24,11 +24,13 @@ type IUserStorage interface {
 }
 
 type ITweetStorage interface {
-	CreateTweet(ctx context.Context, tweet models.Tweet) (string, error)
+	CreateTweet(ctx context.Context, tweet models.CreateTweet) error
 	GetTweet(ctx context.Context, tweetID string) (models.Tweet, error)
-	UpdateTweet(ctx context.Context, tweet models.Tweet) error
+	UpdateTweet(ctx context.Context, tweet models.UpdateTweet) error
 	DeleteTweet(ctx context.Context, tweetID string) error
-	ListTweetsByUser(ctx context.Context, userID string) ([]models.Tweet, error)
+	ListTweetsByUser(ctx context.Context, userID string) (models.TweetsResponse, error)
+	GetTweetList(ctx context.Context, request models.GetListRequest) (models.TweetsResponse, error)
+	IncrementTweetViews(ctx context.Context, tweetID string, userID string) error
 }
 
 type ILikeStorage interface {

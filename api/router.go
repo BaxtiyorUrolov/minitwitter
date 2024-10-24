@@ -24,7 +24,12 @@ func (s *Server) endpoints() {
 	v1.POST("/user", s.handler.CreateUser)
 	v1.GET("/user/:id", s.handler.GetUser)
 	v1.GET("/users", s.handler.GetUserList)
-	//v1.DELETE("/user/:id", s.handler.DeleteUser)
+
+	// Tweet
+
+	v1.GET("/tweet/:id", s.handler.GetTweet)
+	v1.GET("/tweets", s.handler.GetTweetList)
+	v1.GET("/tweets/user/:user_id", s.handler.GetTweetsByUser)
 
 	// JWT Middleware protected routes
 	protectedRoutes := v1.Group("/") // "/api/v1/" under new group
@@ -32,6 +37,13 @@ func (s *Server) endpoints() {
 	{
 		protectedRoutes.PUT("/user/:id", s.handler.UpdateUser)
 		protectedRoutes.DELETE("/user/:id", s.handler.DeleteUser)
+
+		// Tweet
+
+		protectedRoutes.POST("/tweet", s.handler.CreateTweet)
+		protectedRoutes.PUT("/tweet/:id", s.handler.UpdateTweet)
+		protectedRoutes.DELETE("/tweet/:id", s.handler.DeleteTweet)
+		protectedRoutes.PATCH("/tweet/:id/views", s.handler.IncrementTweetViews)
 	}
 
 	// Swagger documentation

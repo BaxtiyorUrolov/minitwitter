@@ -41,7 +41,6 @@ func (h Handler) Login(c *gin.Context) {
 		return
 	}
 
-	// Return JWT token on successful login
 	handleResponse(c, h.log, "success", http.StatusOK, loginResponse)
 }
 

@@ -35,12 +35,6 @@ CREATE TABLE likes (
     PRIMARY KEY (user_id, tweet_id)
 );
 
-CREATE TABLE retweets (
-    user_id UUID REFERENCES users(id),
-    tweet_id UUID REFERENCES tweets(id),
-    PRIMARY KEY (user_id, tweet_id)
-);
-
 CREATE TABLE follows (
     follower_id UUID REFERENCES users(id),
     following_id UUID REFERENCES users(id),

@@ -1,4 +1,13 @@
 definitions:
+  models.CreateTweet:
+    properties:
+      content:
+        type: string
+      media:
+        type: string
+      user_id:
+        type: string
+    type: object
   models.CreateUser:
     properties:
       email:
@@ -31,6 +40,45 @@ definitions:
         type: string
       statusCode:
         type: integer
+    type: object
+  models.Tweet:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      likes_count:
+        type: integer
+      media:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      views_count:
+        type: integer
+    type: object
+  models.TweetsResponse:
+    properties:
+      count:
+        type: integer
+      tweets:
+        items:
+          $ref: '#/definitions/models.Tweet'
+        type: array
+    type: object
+  models.UpdateTweet:
+    properties:
+      content:
+        type: string
+      id:
+        type: string
+      media:
+        type: string
+      user_id:
+        type: string
     type: object
   models.UpdateUser:
     properties:
@@ -161,6 +209,223 @@ paths:
       summary: Register a new user
       tags:
       - register
+  /api/v1/tweet:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new tweet
+      parameters:
+      - description: tweet
+        in: body
+        name: tweet
+        schema:
+          $ref: '#/definitions/models.CreateTweet'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Tweet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Creates a new tweet
+      tags:
+      - tweet
+  /api/v1/tweet/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a tweet by ID
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a tweet
+      tags:
+      - tweet
+    get:
+      consumes:
+      - application/json
+      description: Get a tweet by ID
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tweet'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get a tweet by ID
+      tags:
+      - tweet
+    put:
+      consumes:
+      - application/json
+      description: Update a tweet
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: tweet
+        in: body
+        name: tweet
+        schema:
+          $ref: '#/definitions/models.UpdateTweet'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tweet'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a tweet
+      tags:
+      - tweet
+  /api/v1/tweet/{id}/views:
+    patch:
+      consumes:
+      - application/json
+      description: Increment views for a tweet by the logged-in user
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Increment views for a tweet
+      tags:
+      - tweet
+  /api/v1/tweets:
+    get:
+      consumes:
+      - application/json
+      description: Get list of tweets
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TweetsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get list of tweets
+      tags:
+      - tweet
+  /api/v1/tweets/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get tweets by user by their User ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TweetsResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get tweets by user
+      tags:
+      - tweet
   /api/v1/user:
     post:
       consumes:

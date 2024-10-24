@@ -26,7 +26,7 @@ func NewTweetRepo(db *pgxpool.Pool, log logger.Logger) storage.ITweetStorage {
 	}
 }
 
-func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.Tweet) (string, error) {
+func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.CreateTweet) error {
 	uid := uuid.New()
 
 	_, err := t.db.Exec(ctx, `
@@ -40,10 +40,10 @@ func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.Tweet) (string
 	)
 	if err != nil {
 		t.log.Error("error while inserting tweet", logger.Error(err))
-		return "", err
+		return err
 	}
 
-	return uid.String(), nil
+	return nil
 }
 
 func (t *tweetRepo) GetTweet(ctx context.Context, tweetID string) (models.Tweet, error) {
@@ -52,7 +52,7 @@ func (t *tweetRepo) GetTweet(ctx context.Context, tweetID string) (models.Tweet,
 	var updatedAt sql.NullTime
 
 	query := `
-		SELECT t.id, t.content, t.media, t.created_at, t.updated_at,
+		SELECT t.id, t.user_id, t.content, t.media, t.created_at, t.updated_at,
 		       t.views_count,
 		       (SELECT COUNT(*) FROM likes l WHERE l.tweet_id = t.id) AS likes_count 
 		FROM tweets t
@@ -62,6 +62,7 @@ func (t *tweetRepo) GetTweet(ctx context.Context, tweetID string) (models.Tweet,
 	var tweet models.Tweet
 	err := t.db.QueryRow(ctx, query, tweetID).Scan(
 		&tweet.ID,
+		&tweet.UserID,
 		&content,
 		&media,
 		&tweet.CreatedAt,
@@ -89,45 +90,55 @@ func (t *tweetRepo) GetTweet(ctx context.Context, tweetID string) (models.Tweet,
 	return tweet, nil
 }
 
-func (t *tweetRepo) GetTweetList(ctx context.Context, limit, offset int, search string) ([]models.Tweet, error) {
+func (t *tweetRepo) GetTweetList(ctx context.Context, request models.GetListRequest) (models.TweetsResponse, error) {
+	var (
+		page           = request.Page
+		offset         = (page - 1) * request.Limit
+		query          string
+		search         = request.Search
+		content, media sql.NullString
+		updatedAt      sql.NullTime
+		tweetList      = []models.Tweet{} // Store list of tweets here
+	)
 
-	var content, media sql.NullString
-	var updatedAt sql.NullTime
-
-	query := `
-		SELECT t.id, t.content, t.media, t.created_at, t.updated_at,
+	// Base query
+	query = `
+		SELECT t.id, t.user_id, t.content, t.media, t.created_at, t.updated_at,
 		       t.views_count, 
 		       (SELECT COUNT(*) FROM likes l WHERE l.tweet_id = t.id) AS likes_count
 		FROM tweets t
-		WHERE t.deleted_at = 0
+		WHERE t.deleted_at IS NULL
 	`
 
+	// Add search functionality if there’s a search term
 	if search != "" {
-		search = "%" + search + "%"
 		query += " AND t.content ILIKE $3"
 	}
 
-	query += ` LIMIT $1 OFFSET $2`
+	// Add pagination
+	query += ` ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
 
+	// Execute the query based on whether search is included
 	var rows pgx.Rows
 	var err error
 	if search != "" {
-		rows, err = t.db.Query(ctx, query, limit, offset, search)
+		searchTerm := "%" + search + "%"
+		rows, err = t.db.Query(ctx, query, request.Limit, offset, searchTerm)
 	} else {
-		rows, err = t.db.Query(ctx, query, limit, offset)
+		rows, err = t.db.Query(ctx, query, request.Limit, offset)
 	}
 
 	if err != nil {
 		t.log.Error("Error while getting tweet list", logger.Error(err))
-		return nil, err
+		return models.TweetsResponse{}, err
 	}
 	defer rows.Close()
 
-	var tweets []models.Tweet
 	for rows.Next() {
 		var tweet models.Tweet
 		err := rows.Scan(
 			&tweet.ID,
+			&tweet.UserID,
 			&content,
 			&media,
 			&tweet.CreatedAt,
@@ -139,10 +150,23 @@ func (t *tweetRepo) GetTweetList(ctx context.Context, limit, offset int, search 
 			t.log.Error("Error while scanning tweet", logger.Error(err))
 			continue
 		}
-		tweets = append(tweets, tweet)
+
+		tweet.Content = content.String
+		tweet.Media = media.String
+
+		if updatedAt.Valid {
+			tweet.UpdatedAt = updatedAt.Time
+		} else {
+			tweet.UpdatedAt = tweet.CreatedAt
+		}
+
+		tweetList = append(tweetList, tweet)
 	}
 
-	return tweets, nil
+	return models.TweetsResponse{
+		Count:  len(tweetList),
+		Tweets: tweetList,
+	}, nil
 }
 
 func (t *tweetRepo) DeleteTweet(ctx context.Context, tweetID string) error {
@@ -154,7 +178,10 @@ func (t *tweetRepo) DeleteTweet(ctx context.Context, tweetID string) error {
 	return nil
 }
 
-func (t *tweetRepo) ListTweetsByUser(ctx context.Context, userID string) ([]models.Tweet, error) {
+func (t *tweetRepo) ListTweetsByUser(ctx context.Context, userID string) (models.TweetsResponse, error) {
+
+	var updatedAT sql.NullTime
+
 	rows, err := t.db.Query(ctx, `SELECT t.id, t.content, t.media, t.created_at, t.updated_at,
 		       t.views_count, 
 		       (SELECT COUNT(*) FROM likes l WHERE l.tweet_id = t.id) AS likes_count 
@@ -162,11 +189,11 @@ func (t *tweetRepo) ListTweetsByUser(ctx context.Context, userID string) ([]mode
 		WHERE t.user_id = $1;`, userID)
 	if err != nil {
 		t.log.Error("error while listing tweets", logger.Error(err))
-		return nil, err
+		return models.TweetsResponse{}, err
 	}
 	defer rows.Close()
 
-	var tweets []models.Tweet
+	var tweetsResponse models.TweetsResponse
 	for rows.Next() {
 		tweet := models.Tweet{}
 		err = rows.Scan(
@@ -174,7 +201,7 @@ func (t *tweetRepo) ListTweetsByUser(ctx context.Context, userID string) ([]mode
 			&tweet.Content,
 			&tweet.Media,
 			&tweet.CreatedAt,
-			&tweet.UpdatedAt,
+			&updatedAT,
 			&tweet.ViewsCount,
 			&tweet.LikesCount,
 		)
@@ -182,12 +209,20 @@ func (t *tweetRepo) ListTweetsByUser(ctx context.Context, userID string) ([]mode
 			t.log.Error("error while scanning tweet", logger.Error(err))
 			continue
 		}
-		tweets = append(tweets, tweet)
+
+		if updatedAT.Valid {
+			tweet.UpdatedAt = updatedAT.Time
+		}
+
+		tweetsResponse.Tweets = append(tweetsResponse.Tweets, tweet)
 	}
-	return tweets, nil
+
+	tweetsResponse.Count = len(tweetsResponse.Tweets)
+
+	return tweetsResponse, nil
 }
 
-func (t *tweetRepo) UpdateTweet(ctx context.Context, tweet models.Tweet) error {
+func (t *tweetRepo) UpdateTweet(ctx context.Context, tweet models.UpdateTweet) error {
 	setClauses := []string{}
 	args := []interface{}{}
 	argID := 1
@@ -209,7 +244,7 @@ func (t *tweetRepo) UpdateTweet(ctx context.Context, tweet models.Tweet) error {
 	}
 
 	args = append(args, tweet.ID)
-	query := fmt.Sprintf("UPDATE tweets SET %s WHERE id = $%d", strings.Join(setClauses, ", "), argID)
+	query := fmt.Sprintf("UPDATE tweets SET %s, updated_at = now() WHERE id = $%d", strings.Join(setClauses, ", "), argID)
 
 	_, err := t.db.Exec(ctx, query, args...)
 	if err != nil {
@@ -221,6 +256,9 @@ func (t *tweetRepo) UpdateTweet(ctx context.Context, tweet models.Tweet) error {
 }
 
 func (t *tweetRepo) IncrementTweetViews(ctx context.Context, userID, tweetID string) error {
+
+	fmt.Println("user: ", userID)
+
 	var count int
 	checkQuery := `SELECT COUNT(1) FROM views WHERE user_id = $1 AND tweet_id = $2`
 	err := t.db.QueryRow(ctx, checkQuery, userID, tweetID).Scan(&count)
@@ -230,7 +268,6 @@ func (t *tweetRepo) IncrementTweetViews(ctx context.Context, userID, tweetID str
 	}
 
 	if count == 0 {
-		// 2. Views jadvaliga yozuv qo'shamiz
 		insertQuery := `INSERT INTO views (user_id, tweet_id) VALUES ($1, $2)`
 		_, err = t.db.Exec(ctx, insertQuery, userID, tweetID)
 		if err != nil {
@@ -238,7 +275,6 @@ func (t *tweetRepo) IncrementTweetViews(ctx context.Context, userID, tweetID str
 			return err
 		}
 
-		// 3. Tvitning views_count ni oshiramiz
 		updateQuery := `UPDATE tweets SET views_count = views_count + 1 WHERE id = $1`
 		_, err = t.db.Exec(ctx, updateQuery, tweetID)
 		if err != nil {
