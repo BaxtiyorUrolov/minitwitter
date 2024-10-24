@@ -19,7 +19,6 @@ func NewFollowService(storage storage.IStorage, log logger.Logger) followService
 	}
 }
 
-// Follow a User
 func (f followService) FollowUser(ctx context.Context, follow models.Follow) error {
 	f.log.Info("Following user service layer", logger.Any("follow", follow))
 
@@ -32,7 +31,6 @@ func (f followService) FollowUser(ctx context.Context, follow models.Follow) err
 	return nil
 }
 
-// Unfollow a User
 func (f followService) UnfollowUser(ctx context.Context, followerID, followingID string) error {
 	f.log.Info("Unfollowing user service layer", logger.Any("follower_id", followerID), logger.Any("following_id", followingID))
 
@@ -45,7 +43,6 @@ func (f followService) UnfollowUser(ctx context.Context, followerID, followingID
 	return nil
 }
 
-// Get Followers for a User
 func (f followService) GetFollowers(ctx context.Context, userID string) ([]models.Follow, error) {
 	f.log.Info("Getting followers in service layer", logger.Any("user_id", userID))
 
@@ -58,7 +55,6 @@ func (f followService) GetFollowers(ctx context.Context, userID string) ([]model
 	return followers, nil
 }
 
-// Get Followings for a User
 func (f followService) GetFollowings(ctx context.Context, userID string) ([]models.Follow, error) {
 	f.log.Info("Getting followings in service layer", logger.Any("user_id", userID))
 

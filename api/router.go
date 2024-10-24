@@ -51,6 +51,13 @@ func (s *Server) endpoints() {
 		protectedRoutes.DELETE("/tweet/:id/unlike", s.handler.UnlikeTweet)
 		protectedRoutes.GET("/tweet/:id/like-count", s.handler.GetLikeCount)
 
+		// Follow
+
+		protectedRoutes.POST("/user/:id/follow", s.handler.FollowUser)
+		protectedRoutes.DELETE("/user/:id/unfollow", s.handler.UnfollowUser)
+		protectedRoutes.GET("/user/:id/followers", s.handler.GetFollowers)
+		protectedRoutes.GET("/user/:id/followings", s.handler.GetFollowings)
+
 	}
 
 	// Swagger documentation
