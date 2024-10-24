@@ -25,7 +25,6 @@ func NewUserRepo(db *pgxpool.Pool, log logger.Logger) storage.IUserStorage {
 	}
 }
 
-// Create - Foydalanuvchi yaratish
 func (u *userRepo) Create(ctx context.Context, createUser models.CreateUser) (string, error) {
 	uid := uuid.New()
 
@@ -161,10 +160,8 @@ func (u *userRepo) GetList(ctx context.Context, request models.GetListRequest) (
 		updatedAT           sql.NullTime
 	)
 
-	// So'rovlar uchun bazaviy count so'rovi
 	countQuery = `SELECT count(1) FROM users WHERE deleted_at = 0 `
 	if search != "" {
-		// Qidiruv so'zi bor bo'lsa, qidiruvni countQuery'ga qo'shamiz
 		countQuery += fmt.Sprintf(` AND (name ILIKE '%%%s%%' OR user_name ILIKE '%%%s%%' OR email ILIKE '%%%s%%')`, search, search, search)
 	}
 	if err := u.db.QueryRow(ctx, countQuery).Scan(&count); err != nil {
