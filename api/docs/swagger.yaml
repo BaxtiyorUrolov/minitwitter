@@ -336,6 +336,93 @@ paths:
       summary: Update a tweet
       tags:
       - tweet
+  /api/v1/tweet/{id}/like:
+    post:
+      consumes:
+      - application/json
+      description: Like a tweet by the logged-in user
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Like a tweet
+      tags:
+      - tweet
+  /api/v1/tweet/{id}/like-count:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of likes for a specific tweet
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get like count for a tweet
+      tags:
+      - tweet
+  /api/v1/tweet/{id}/unlike:
+    delete:
+      consumes:
+      - application/json
+      description: Unlike a tweet by the logged-in user
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      security:
+      - BearerAuth: []
+      summary: Unlike a tweet
+      tags:
+      - tweet
   /api/v1/tweet/{id}/views:
     patch:
       consumes:

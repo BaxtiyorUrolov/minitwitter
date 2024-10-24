@@ -44,6 +44,13 @@ func (s *Server) endpoints() {
 		protectedRoutes.PUT("/tweet/:id", s.handler.UpdateTweet)
 		protectedRoutes.DELETE("/tweet/:id", s.handler.DeleteTweet)
 		protectedRoutes.PATCH("/tweet/:id/views", s.handler.IncrementTweetViews)
+
+		// Like
+
+		protectedRoutes.POST("/tweet/:id/like", s.handler.LikeTweet)
+		protectedRoutes.DELETE("/tweet/:id/unlike", s.handler.UnlikeTweet)
+		protectedRoutes.GET("/tweet/:id/like-count", s.handler.GetLikeCount)
+
 	}
 
 	// Swagger documentation
