@@ -46,8 +46,7 @@ func New(ctx context.Context, cfg config.Config, log logger.Logger) (storage.ISt
 		return nil, err
 	}
 
-	//migration
-	m, err := migrate.New("file://migrations/postgres/", url)
+	m, err := migrate.New("file://migrations/postgres/", url) // Use absolute path
 	if err != nil {
 		log.Error("error while migrating", logger.Error(err))
 		return nil, err
