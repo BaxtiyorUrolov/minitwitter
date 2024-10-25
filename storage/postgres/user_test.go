@@ -1,52 +1,14 @@
 package postgres
 
 import (
-	"context"
-	"fmt"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 	"twitter/api/models"
-	"twitter/config"
-	"twitter/pkg/logger"
-	"twitter/storage"
 )
-
-func setup(t *testing.T) (storage.IStorage, logger.Logger, context.Context) {
-
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error getting current directory:", err)
-	}
-	fmt.Println("Current directory:", dir)
-
-	err = godotenv.Load(".env")
-	if err != nil {
-		t.Fatalf("Error loading .env file")
-	}
-
-	// Load config and logger
-	cfg := config.Load()
-	log := logger.New(cfg.ServiceName)
-
-	// Run migrations
-	store, err := New(context.Background(), cfg, log)
-	if err != nil {
-		t.Fatalf("Error while connecting to DB: %v", err)
-	}
-
-	return store, log, context.Background()
-}
 
 func TestUserRepo_Create(t *testing.T) {
 
-	err := os.Chdir("../../")
-	if err != nil {
-		t.Fatalf("Error changing directory: %v", err)
-	}
-
-	pgStore, _, ctx := setup(t)
+	pgStore, ctx := setup(t)
 
 	userRepo := pgStore.User()
 
@@ -64,7 +26,7 @@ func TestUserRepo_Create(t *testing.T) {
 
 func TestUserRepo_GetByID(t *testing.T) {
 
-	pgStore, _, ctx := setup(t)
+	pgStore, ctx := setup(t)
 
 	userRepo := pgStore.User()
 
@@ -89,7 +51,7 @@ func TestUserRepo_GetByID(t *testing.T) {
 
 func TestUserRepo_Update(t *testing.T) {
 
-	pgStore, _, ctx := setup(t)
+	pgStore, ctx := setup(t)
 
 	userRepo := pgStore.User()
 
@@ -129,7 +91,7 @@ func TestUserRepo_Update(t *testing.T) {
 
 func TestUserRepo_Delete(t *testing.T) {
 
-	pgStore, _, ctx := setup(t)
+	pgStore, ctx := setup(t)
 
 	userRepo := pgStore.User()
 
@@ -154,7 +116,7 @@ func TestUserRepo_Delete(t *testing.T) {
 
 func TestUserRepo_IsUserNameExist(t *testing.T) {
 
-	pgStore, _, ctx := setup(t)
+	pgStore, ctx := setup(t)
 
 	userRepo := pgStore.User()
 

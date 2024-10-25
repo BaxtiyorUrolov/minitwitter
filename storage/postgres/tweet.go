@@ -26,7 +26,7 @@ func NewTweetRepo(db *pgxpool.Pool, log logger.Logger) storage.ITweetStorage {
 	}
 }
 
-func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.CreateTweet) error {
+func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.CreateTweet) (string, error) {
 	uid := uuid.New()
 
 	_, err := t.db.Exec(ctx, `
@@ -40,10 +40,10 @@ func (t *tweetRepo) CreateTweet(ctx context.Context, tweet models.CreateTweet) e
 	)
 	if err != nil {
 		t.log.Error("error while inserting tweet", logger.Error(err))
-		return err
+		return "", err
 	}
 
-	return nil
+	return uid.String(), nil
 }
 
 func (t *tweetRepo) GetTweet(ctx context.Context, tweetID string) (models.Tweet, error) {
@@ -107,12 +107,11 @@ func (t *tweetRepo) GetTweetList(ctx context.Context, request models.GetListRequ
 		       t.views_count, 
 		       (SELECT COUNT(*) FROM likes l WHERE l.tweet_id = t.id) AS likes_count
 		FROM tweets t
-		WHERE t.deleted_at IS NULL
 	`
 
 	// Add search functionality if there’s a search term
 	if search != "" {
-		query += " AND t.content ILIKE $3"
+		query += " WHERE t.content ILIKE $3"
 	}
 
 	// Add pagination

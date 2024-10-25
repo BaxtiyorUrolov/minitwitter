@@ -23,7 +23,7 @@ func NewTweetService(storage storage.IStorage, log logger.Logger) tweetService {
 
 func (t tweetService) Create(ctx context.Context, createTweet models.CreateTweet) error {
 
-	err := t.storage.Tweet().CreateTweet(ctx, createTweet)
+	_, err := t.storage.Tweet().CreateTweet(ctx, createTweet)
 	if err != nil {
 		t.log.Error("Error while creating tweet", logger.Error(err))
 		return err

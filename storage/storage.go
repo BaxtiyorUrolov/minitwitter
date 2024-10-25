@@ -24,7 +24,7 @@ type IUserStorage interface {
 }
 
 type ITweetStorage interface {
-	CreateTweet(ctx context.Context, tweet models.CreateTweet) error
+	CreateTweet(ctx context.Context, tweet models.CreateTweet) (string, error)
 	GetTweet(ctx context.Context, tweetID string) (models.Tweet, error)
 	UpdateTweet(ctx context.Context, tweet models.UpdateTweet) error
 	DeleteTweet(ctx context.Context, tweetID string) error
