@@ -47,8 +47,7 @@ func (kc *KafkaConsumer) Start(ctx context.Context) {
 				continue
 			}
 
-			// Xabarni email orqali yuborish
-			if err := email.SendEmail(event.Email, event.Message); err != nil {
+			if err := email.SendNotification(event.Email, event.Message); err != nil {
 				kc.log.Error("Error while sending email", logger.Error(err))
 			}
 		case <-ctx.Done():

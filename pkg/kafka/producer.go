@@ -11,7 +11,6 @@ type Producer struct {
 	topic    string
 }
 
-// NewKafkaProducer yangi Kafka kafka'ni yaratadi
 func NewKafkaProducer(brokers []string, topic string, log logger.Logger) (*Producer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
@@ -30,7 +29,6 @@ func NewKafkaProducer(brokers []string, topic string, log logger.Logger) (*Produ
 	}, nil
 }
 
-// SendMessage funksiyasi orqali xabarni Kafka mavzusiga yuboradi
 func (p *Producer) SendMessage(message string) error {
 	msg := &sarama.ProducerMessage{
 		Topic: p.topic,
@@ -47,7 +45,6 @@ func (p *Producer) SendMessage(message string) error {
 	return nil
 }
 
-// Close funksiyasi kafka'ni yopadi
 func (p *Producer) Close() error {
 	return p.producer.Close()
 }
