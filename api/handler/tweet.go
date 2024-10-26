@@ -153,17 +153,20 @@ func (h *Handler) DeleteTweet(c *gin.Context) {
 // @Tags         tweet
 // @Accept       json
 // @Produce      json
-// @Param        page query int false "Page number"
-// @Param        limit query int false "Limit"
-// @Success      200  {object}  models.TweetsResponse
-// @Failure      500  {object}  models.Response
+// @Param        page   query int    false "Page number"
+// @Param        limit  query int    false "Limit"
+// @Param        search query string false "Search"
+// @Success      200    {object}     models.TweetsResponse
+// @Failure      500    {object}     models.Response
 func (h *Handler) GetTweetList(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")
+	search := c.DefaultQuery("search", "")
 
 	request := models.GetListRequest{
-		Page:  atoi(page),
-		Limit: atoi(limit),
+		Page:   atoi(page),
+		Limit:  atoi(limit),
+		Search: search,
 	}
 
 	tweets, err := h.services.Tweet().GetList(context.Background(), request)

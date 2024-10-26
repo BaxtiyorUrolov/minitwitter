@@ -14,7 +14,7 @@ type Tweet struct {
 }
 
 type CreateTweet struct {
-	UserID  string `json:"user_id"`
+	UserID  string `json:"-"`
 	Content string `json:"content"`
 	Media   string `json:"media"`
 }

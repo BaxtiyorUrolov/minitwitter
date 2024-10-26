@@ -5,8 +5,6 @@ definitions:
         type: string
       media:
         type: string
-      user_id:
-        type: string
     type: object
   models.CreateUser:
     properties:
@@ -134,6 +132,8 @@ definitions:
       code:
         type: string
       email:
+        type: string
+      name:
         type: string
       password:
         type: string
@@ -470,6 +470,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Search
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -772,6 +776,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Search
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:

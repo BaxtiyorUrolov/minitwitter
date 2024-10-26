@@ -98,7 +98,7 @@ func (t *tweetRepo) GetTweetList(ctx context.Context, request models.GetListRequ
 		search         = request.Search
 		content, media sql.NullString
 		updatedAt      sql.NullTime
-		tweetList      = []models.Tweet{} // Store list of tweets here
+		tweetList      = models.TweetsResponse{}
 	)
 
 	// Base query
@@ -109,15 +109,12 @@ func (t *tweetRepo) GetTweetList(ctx context.Context, request models.GetListRequ
 		FROM tweets t
 	`
 
-	// Add search functionality if there’s a search term
 	if search != "" {
-		query += " WHERE t.content ILIKE $3"
+		query += " WHERE t.content ILIKE '%' || $3 || '%'"
 	}
 
-	// Add pagination
 	query += ` ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
 
-	// Execute the query based on whether search is included
 	var rows pgx.Rows
 	var err error
 	if search != "" {
@@ -159,13 +156,12 @@ func (t *tweetRepo) GetTweetList(ctx context.Context, request models.GetListRequ
 			tweet.UpdatedAt = tweet.CreatedAt
 		}
 
-		tweetList = append(tweetList, tweet)
+		tweetList.Tweets = append(tweetList.Tweets, tweet)
 	}
 
-	return models.TweetsResponse{
-		Count:  len(tweetList),
-		Tweets: tweetList,
-	}, nil
+	tweetList.Count = len(tweetList.Tweets)
+
+	return tweetList, nil
 }
 
 func (t *tweetRepo) DeleteTweet(ctx context.Context, tweetID string) error {

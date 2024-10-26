@@ -63,6 +63,9 @@ services:
     restart: always
     networks:
       - app-network
+    volumes:
+      - ./.env:/app/.env            # .env faylini konteynerga ulash
+      - ./migrations:/app/migrations
 
 networks:
   app-network:

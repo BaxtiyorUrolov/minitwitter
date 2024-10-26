@@ -52,8 +52,6 @@ func New(ctx context.Context, cfg config.Config, log logger.Logger) (storage.ISt
 		return nil, err
 	}
 
-	log.Info("???? came")
-
 	if err = m.Up(); err != nil {
 		log.Warning("migration up", logger.Error(err))
 		if !strings.Contains(err.Error(), "no change") {
