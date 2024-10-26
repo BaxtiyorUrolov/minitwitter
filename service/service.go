@@ -1,6 +1,7 @@
 package service
 
 import (
+	"twitter/pkg/kafka"
 	"twitter/pkg/logger"
 	"twitter/storage"
 )
@@ -21,13 +22,13 @@ type Service struct {
 	followService followService
 }
 
-func New(storage storage.IStorage, log logger.Logger) Service {
+func New(storage storage.IStorage, log logger.Logger, producer *kafka.Producer) Service {
 	services := Service{}
 
 	services.userService = NewUserService(storage, log)
 	services.authService = NewAuthService(storage, log)
 	services.tweetService = NewTweetService(storage, log)
-	services.likeService = NewLikeService(storage, log)
+	services.likeService = NewLikeService(storage, log, producer)
 	services.followService = NewFollowService(storage, log)
 
 	return services

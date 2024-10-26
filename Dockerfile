@@ -1,19 +1,29 @@
-FROM golang:1.22.1-alpine AS builder
+# Go image'ni asos sifatida olish
+FROM golang:1.22.1 AS builder
 
+# Ishchi katalogni yaratish
 WORKDIR /app
 
-COPY . /app
+# Modullarni va kodni yuklash
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN go build -o main cmd/main.go
+COPY . .
 
-FROM alpine
+# Dasturiy ta'minotni yaratish
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o main ./cmd/main.go
 
-WORKDIR /app
+# Yana birinchi rasmdan alohida rasm yaratish
+FROM alpine:latest
 
-COPY --from=builder /app/main .
+# Ishga tushirish uchun portni ochish
+EXPOSE 7070
 
-COPY .env /app
+# Asosiy faylni ko'chirish
+WORKDIR /root/
+COPY --from=builder /app .
 
-COPY ./migrations /app/migrations
-
-CMD ["/app/main"]
+# Dasturiy ta'minotni ishga tushirish
+CMD ["./main"]

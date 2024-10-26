@@ -17,6 +17,9 @@ type Config struct {
 	HTTPort string
 
 	EmailPassword string
+	KafkaHost     string
+	KafkaPort     string
+	KafkaTopic    string
 
 	ServiceName string
 	LoggerLevel string
@@ -35,6 +38,9 @@ func Load() Config {
 	cfg.PostgresDB = cast.ToString(getOrReturnDefault("POSTGRES_DB", "your database"))
 	cfg.HTTPort = cast.ToString(getOrReturnDefault("HTTP_PORT", ":8080"))
 	cfg.EmailPassword = cast.ToString(getOrReturnDefault("EMAIL_PASSWORD", "your password"))
+	cfg.KafkaHost = cast.ToString(getOrReturnDefault("KAFKA_HOST", "localhost"))
+	cfg.KafkaPort = cast.ToString(getOrReturnDefault("KAFKA_PORT", "9092"))
+	cfg.KafkaTopic = cast.ToString(getOrReturnDefault("KAFKA_TOPIC", "topic"))
 	cfg.ServiceName = cast.ToString(getOrReturnDefault("SERVICE_NAME", "store"))
 	cfg.LoggerLevel = cast.ToString(getOrReturnDefault("LOGGER_LEVEL", "debug"))
 	return cfg
